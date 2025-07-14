@@ -1,0 +1,619 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Recommender System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            color: #fff;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px 0;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            outline: none;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        input[type="text"]:focus {
+            border-color: #66bb6a;
+        }
+
+        button {
+            background: #4CAF50;
+            color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        .genre-options {
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .genre-options label {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+
+        .genre-options label:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .recommendations {
+            margin-top: 20px;
+            text-align: left;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .recommendation-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .recommendation-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        .recommendation-card h4 {
+            font-size: 1.1rem;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .rating {
+            font-weight: bold;
+            color: #ffc107;
+        }
+
+        .genre-tag {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            margin: 2px 0;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #fff;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            margin-top: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            .recommendation-card h4 {
+                font-size: 1rem;
+            }
+        }
+            .hidden {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="login-screen">
+            <h2>Welcome</h2>
+            <p>Please enter your name to get started</p>
+            <input type="text" id="username" placeholder="Enter your name">
+            <button onclick="showGenreSelection()">Login</button>
+        </div>
+
+        <div id="genre-screen" class="hidden">
+            <h2>Select Your Favorite Genres</h2>
+            <div class="genre-options">
+                <label><input type="checkbox" name="genre" value="action"> Action</label>
+                <label><input type="checkbox" name="genre" value="adventure"> Adventure</label>
+                <label><input type="checkbox" name="genre" value="rpg"> RPG</label>
+                <label><input type="checkbox" name="genre" value="puzzle"> Puzzle</label>
+                <label><input type="checkbox" name="genre" value="horror"> Horror</label>
+                <label><input type="checkbox" name="genre" value="strategy"> Strategy</label>
+                <label><input type="checkbox" name="genre" value="shooter"> Shooter</label>
+                <label><input type="checkbox" name="genre" value="simulation"> Simulation</label>
+                <label><input type="checkbox" name="genre" value="sports"> Sports</label>
+                <label><input type="checkbox" name="genre" value="racing"> Racing</label>
+                <label><input type="checkbox" name="genre" value="fighting"> Fighting</label>
+                <label><input type="checkbox" name="genre" value="rhythm"> Rhythm</label>
+                <label><input type="checkbox" name="genre" value="role-play"> Role-Playing</label>
+    
+            </div>
+            <button onclick="recommendGames()">Get Recommendations</button>
+        </div>
+
+        <div id="recommendations-screen" class="hidden">
+            <h2>Top Recommended Games For You</h2>
+            <div id="recommendations" class="recommendations"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const users = [
+     {
+       username: "John_Doe",
+       genres: ["Action", "Adventure", "RPG"],
+       games: [
+         "The Witcher 3: Wild Hunt",
+         "Elden Ring",
+         "God of War",
+         "Red Dead Redemption 2",
+         "Assassin's Creed Valhalla",
+         "Dark Souls III",
+         "Horizon Zero Dawn",
+         "The Legend of Zelda: Breath of the Wild",
+         "Cyberpunk 2077",
+         "Dragon Age: Inquisition"
+       ]
+     },
+     {
+       username: "Jane_Smith",
+       genres: ["Shooter", "Battle Royale", "Action"],
+       games: [
+         "Call of Duty: Warzone",
+         "Fortnite",
+         "Apex Legends",
+         "Halo Infinite",
+         "Overwatch 2",
+         "PUBG: Battlegrounds",
+         "Valorant",
+         "Destiny 2",
+         "Tom Clancy's Rainbow Six Siege",
+         "Counter-Strike: Global Offensive"
+       ]
+     },
+     {
+       username: "Alex_01",
+       genres: ["Fantasy", "RPG"],
+       games: [
+         "Final Fantasy XV",
+         "The Elder Scrolls V: Skyrim",
+         "Divinity: Original Sin 2",
+         "Baldur's Gate 3",
+         "World of Warcraft",
+         "Path of Exile",
+         "Pillars of Eternity",
+         "Genshin Impact",
+         "Diablo III",
+         "Lost Ark"
+       ]
+     },
+     {
+       username: "Mike_007",
+       genres: ["Horror", "Action", "Shooter"],
+       games: [
+         "Resident Evil 4",
+         "The Last of Us Part II",
+         "Silent Hill 2",
+         "Dead Space",
+         "Dying Light 2",
+         "The Evil Within",
+         "Outlast",
+         "Alien: Isolation",
+         "Left 4 Dead 2",
+         "Control"
+       ]
+     },
+     {
+       username: "Emma_Walker",
+       genres: ["Puzzle", "Adventure"],
+       games: [
+         "Portal 2",
+         "The Witness",
+         "Tetris Effect",
+         "Limbo",
+         "Inside",
+         "Baba Is You",
+         "Unravel",
+         "Gris",
+         "Little Nightmares",
+         "Fez"
+       ]
+     },
+     {
+       username: "Lucas_92",
+       genres: ["Sports", "Simulation"],
+       games: [
+         "FIFA 23",
+         "NBA 2K23",
+         "Madden NFL 23",
+         "Football Manager 2023",
+         "MLB The Show 23",
+         "Tony Hawk's Pro Skater 1 + 2",
+         "Forza Horizon 5",
+         "Gran Turismo 7",
+         "The Sims 4",
+         "Cities: Skylines"
+       ]
+     },
+     {
+       username: "Sarah_123",
+       genres: ["Action", "Strategy"],
+       games: [
+         "XCOM 2",
+         "Civilization VI",
+         "Age of Empires IV",
+         "Total War: Warhammer III",
+         "Starcraft II",
+         "Warcraft III: Reforged",
+         "Frostpunk",
+         "Desperados III",
+         "Halo Wars 2",
+         "Company of Heroes 2"
+       ]
+     },
+     {
+       username: "Liam_99",
+       genres: ["Racing", "Action"],
+       games: [
+         "Forza Horizon 5",
+         "Gran Turismo 7",
+         "Need for Speed: Heat",
+         "Dirt 5",
+         "F1 2023",
+         "Burnout Paradise Remastered",
+         "Project CARS 2",
+         "Wreckfest",
+         "The Crew 2",
+         "Assetto Corsa Competizione"
+       ]
+     },
+     {
+       username: "Chloe_Brown",
+       genres: ["RPG", "Adventure"],
+       games: [
+         "The Legend of Zelda: Breath of the Wild",
+         "Xenoblade Chronicles 3",
+         "Mass Effect: Legendary Edition",
+         "Hollow Knight",
+         "Fire Emblem: Three Houses",
+         "Persona 5 Royal",
+         "Ni no Kuni II: Revenant Kingdom",
+         "Octopath Traveler",
+         "Dragon Quest XI",
+         "Tales of Arise"
+       ]
+     },
+     {
+       username: "Noah_King",
+       genres: ["Battle Royale", "Shooter"],
+       games: [
+         "Apex Legends",
+         "Call of Duty: Warzone",
+         "Fortnite",
+         "PUBG: Battlegrounds",
+         "Hyper Scape",
+         "Spellbreak",
+         "Escape from Tarkov",
+         "The Cycle: Frontier",
+         "Fall Guys",
+         "Hunt: Showdown"
+       ]
+     }
+   ];
+   
+   
+   const API_KEY = '19ba8d8fbded482db8ae942354993a8f';
+   const API_URL = 'https://api.rawg.io/api/games';
+   
+   function showTopGamesForReturningUser(user) {
+       const recommendationsDiv = document.getElementById("recommendations");
+       recommendationsDiv.innerHTML = '';
+   
+       user.games.slice(0, 10).forEach(gameName => {
+           const gameCard = document.createElement("div");
+           gameCard.classList.add("recommendation-card");
+   
+           const gameTitle = document.createElement("h4");
+           gameTitle.textContent = gameName;
+           gameCard.appendChild(gameTitle);
+   
+           // Fetch game details from API for image, genre, and rating
+           fetch(`${API_URL}?key=${API_KEY}&search=${encodeURIComponent(gameName)}`)
+               .then(res => res.json())
+               .then(data => {
+                   const gameData = data.results[0];
+                   if (gameData) {
+                       const gameImg = document.createElement("img");
+                       gameImg.src = gameData.background_image || 'https://via.placeholder.com/200';
+                       gameImg.alt = gameData.name;
+                       gameImg.style.width = "100%";
+                       gameCard.appendChild(gameImg);
+   
+                       const gameGenre = document.createElement("p");
+                       gameGenre.textContent = `Genre: ${gameData.genres.map(g => g.name).join(", ")}`;
+                       gameCard.appendChild(gameGenre);
+   
+                       const gameRating = document.createElement("p");
+                       gameRating.classList.add("rating");
+                       gameRating.textContent = `Rating: ${gameData.rating || 'N/A'}`;
+                       gameCard.appendChild(gameRating);
+                   }
+               });
+   
+           recommendationsDiv.appendChild(gameCard);
+       });
+   
+       document.getElementById("login-screen").classList.add("hidden");
+       document.getElementById("recommendations-screen").classList.remove("hidden");
+   }
+   
+   function showGenreSelection() {
+       const username = document.getElementById("username").value.trim();
+       const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+   
+       if (!username) {
+           alert("Please enter your name.");
+           return;
+       }
+   
+       if (user) {
+           alert(`Welcome back, ${username}!`);
+           showTopGamesForReturningUser(user); // Show user's top games directly
+       } else {
+           alert("Welcome, new user! Please select your favorite genres.");
+           document.getElementById("login-screen").classList.add("hidden");
+           document.getElementById("genre-screen").classList.remove("hidden");
+       }
+   }
+   
+   
+   function calculateSimilarity(userGenres, otherGenres) {
+       const commonGenres = userGenres.filter(genre => otherGenres.includes(genre));
+       console.log(`Common genres: ${commonGenres}`); // Debug log
+       return commonGenres.length / Math.max(userGenres.length, otherGenres.length);
+   }
+   async function fetchGameDetails(gameName) {
+       try {
+           const response = await fetch(`${API_URL}?key=${API_KEY}&search=${encodeURIComponent(gameName)}&page_size=1`);
+           const data = await response.json();
+           const game = data.results[0];
+   
+           return {
+               name: game.name || 'Unknown Game',
+               genre: game.genres?.map(g => g.name).join(", ") || 'Unknown Genre',
+               rating: game.rating || 'N/A',
+               img: game.background_image || 'https://via.placeholder.com/200'
+           };
+       } catch (error) {
+           console.error(`Error fetching details for ${gameName}:`, error);
+           return {
+               name: gameName,
+               genre: 'Unknown Genre',
+               rating: 'N/A',
+               img: 'https://via.placeholder.com/200'
+           };
+       }
+   }
+   
+   async function recommendGames() {
+    const selectedGenres = Array.from(document.querySelectorAll('input[name="genre"]:checked'))
+        .map(checkbox => checkbox.value.toLowerCase());
+
+    if (selectedGenres.length === 0) {
+        alert("Please select at least one genre!");
+        return;
+    }
+
+    const username = document.getElementById("username").value.trim();
+    const currentUser = users.find(u => u.username.toLowerCase() === username.toLowerCase()) || {
+        username,
+        genres: selectedGenres,
+        games: []
+    };
+
+    // Collaborative Filtering Recommendations
+    const similarities = users
+        .filter(u => u.username.toLowerCase() !== currentUser.username.toLowerCase())
+        .map(u => {
+            const similarityScore = calculateSimilarity(currentUser.genres.map(g => g.toLowerCase()), u.genres.map(g => g.toLowerCase()));
+            return {
+                username: u.username,
+                similarity: similarityScore,
+                games: u.games
+            };
+        })
+        .filter(u => u.similarity > 0) // Include only users with some similarity
+        .sort((a, b) => b.similarity - a.similarity);
+
+    let collaborativeGames = [];
+    similarities.forEach(similarUser => {
+        collaborativeGames = [...collaborativeGames, ...similarUser.games];
+    });
+
+    // If no recommendations from UBCF, fetch games based on genres from the API
+    if (collaborativeGames.length === 0) {
+        alert("No recommendations found based on similar users. Fetching games based on selected genres.");
+        
+        // Fetch API Games for selected genres
+        const apiGames = await fetch(`${API_URL}?key=${API_KEY}&genres=${selectedGenres.join(',')}&page_size=10`)
+            .then(res => res.json())
+            .then(data => {
+                return data.results.map(game => ({
+                    name: game.name,
+                    genre: game.genres.map(g => g.name).join(", "),
+                    rating: game.rating || 'N/A',
+                    img: game.background_image || 'https://via.placeholder.com/200'
+                }));
+            })
+            .catch(error => {
+                console.error("Error fetching API games:", error);
+                return [];
+            });
+
+        // If no games were fetched, show a message
+        if (apiGames.length === 0) {
+            alert("No games found based on the selected genres.");
+            return;
+        }
+
+        // Display API-based recommendations
+        const recommendationsDiv = document.getElementById("recommendations");
+        recommendationsDiv.innerHTML = '';
+
+        apiGames.forEach(game => {
+            const gameCard = document.createElement("div");
+            gameCard.classList.add("recommendation-card");
+
+            const gameTitle = document.createElement("h4");
+            gameTitle.textContent = game.name;
+            gameCard.appendChild(gameTitle);
+
+            const gameImg = document.createElement("img");
+            gameImg.src = game.img;
+            gameImg.alt = game.name;
+            gameImg.style.width = "100%";
+            gameCard.appendChild(gameImg);
+
+            const gameGenre = document.createElement("p");
+            gameGenre.textContent = `Genre: ${game.genre}`;
+            gameCard.appendChild(gameGenre);
+
+            const gameRating = document.createElement("p");
+            gameRating.classList.add("rating");
+            gameRating.textContent = `Rating: ${game.rating}`;
+            gameCard.appendChild(gameRating);
+
+            recommendationsDiv.appendChild(gameCard);
+        });
+
+        document.getElementById("genre-screen").classList.add("hidden");
+        document.getElementById("recommendations-screen").classList.remove("hidden");
+
+    } else {
+        // Display UBCF-based recommendations
+        const recommendationsDiv = document.getElementById("recommendations");
+        recommendationsDiv.innerHTML = '';
+
+        collaborativeGames.slice(0, 10).forEach(gameName => {
+            const gameCard = document.createElement("div");
+            gameCard.classList.add("recommendation-card");
+
+            const gameTitle = document.createElement("h4");
+            gameTitle.textContent = gameName;
+            gameCard.appendChild(gameTitle);
+
+            // Fetch game details from API for image, genre, and rating
+            fetch(`${API_URL}?key=${API_KEY}&search=${encodeURIComponent(gameName)}`)
+                .then(res => res.json())
+                .then(data => {
+                    const gameData = data.results[0];
+                    if (gameData) {
+                        const gameImg = document.createElement("img");
+                        gameImg.src = gameData.background_image || 'https://via.placeholder.com/200';
+                        gameImg.alt = gameData.name;
+                        gameImg.style.width = "100%";
+                        gameCard.appendChild(gameImg);
+
+                        const gameGenre = document.createElement("p");
+                        gameGenre.textContent = `Genre: ${gameData.genres.map(g => g.name).join(", ")}`;
+                        gameCard.appendChild(gameGenre);
+
+                        const gameRating = document.createElement("p");
+                        gameRating.classList.add("rating");
+                        gameRating.textContent = `Rating: ${gameData.rating || 'N/A'}`;
+                        gameCard.appendChild(gameRating);
+                    }
+                });
+
+            recommendationsDiv.appendChild(gameCard);
+        });
+
+        document.getElementById("genre-screen").classList.add("hidden");
+        document.getElementById("recommendations-screen").classList.remove("hidden");
+    }
+}
+
+       </script>
+</body>
+</html>
